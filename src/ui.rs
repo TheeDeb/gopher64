@@ -215,6 +215,17 @@ pub fn get_dirs() -> Dirs {
 
     #[cfg(not(target_os = "android"))]
     {
+        // Co-op testing: let two instances on one machine keep separate saves,
+        // states and config. Not used by normal players.
+        if let Ok(root) = std::env::var("GOPHER64_DATA_DIR") {
+            let root = std::path::PathBuf::from(root);
+            return Dirs {
+                config_dir: root.join("config"),
+                data_dir: root.join("data"),
+                cache_dir: root.join("cache"),
+            };
+        }
+
         let exe_path = std::env::current_exe().unwrap();
         let portable_dir = exe_path.parent();
         let portable = portable_dir.unwrap().join("portable.txt").exists();
