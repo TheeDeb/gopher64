@@ -15,7 +15,7 @@ const N64_EXTENSIONS_UNCOMPRESSED: [&str; 8] =
 
 use rand::{Rng, SeedableRng};
 
-use crate::{cheats, netplay, retroachievements, ui};
+use crate::{cheats, coop, netplay, retroachievements, ui};
 use std::io::Read;
 
 pub mod ai;
@@ -53,6 +53,7 @@ pub fn run_game(
     game_settings: ui::GameSettings,
     ra_config: retroachievements::RAConfig,
     netplay_config: Option<netplay::NetplayConfig>,
+    coop_port: Option<u16>,
 ) {
     device.cpu.overclock = game_settings.overclock;
     if game_settings.disable_expansion_pak {
@@ -67,6 +68,16 @@ pub fn run_game(
 
     // rdram pointer is shared with parallel-rdp and retroachievements
     rdram::init(device);
+
+    if let Some(port) = coop_port {
+        match coop::init(port) {
+            Ok(server) => {
+                eprintln!("coop bridge listening on 127.0.0.1:{}", server.port);
+                device.coop = Some(server);
+            }
+            Err(e) => eprintln!("coop bridge failed to start: {e}"),
+        }
+    }
 
     ui::video::init(device, netplay_config.is_some());
     ui::audio::init(device);
@@ -259,6 +270,8 @@ pub struct Device {
     #[serde(skip)]
     pub netplay: Option<netplay::Netplay>,
     #[serde(skip)]
+    pub coop: Option<coop::Coop>,
+    #[serde(skip)]
     pub ui: ui::Ui,
     pub byte_swap: usize,
     pub cpu: cpu::Cpu,
@@ -320,6 +333,7 @@ impl Device {
         }
         Box::new(Device {
             netplay: None,
+            coop: None,
             ui: if with_ui {
                 ui::Ui::new()
             } else {

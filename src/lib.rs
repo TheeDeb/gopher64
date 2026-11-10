@@ -1,6 +1,7 @@
 #![deny(warnings)]
 
 mod cheats;
+pub mod coop;
 mod device;
 mod netplay;
 mod retroachievements;
@@ -29,6 +30,12 @@ pub struct Args {
     pub disable_expansion_pak: Option<bool>,
     #[arg(long, value_name = "CHEATS_FILE", hide = true)]
     pub cheats: Option<String>,
+    #[arg(
+        long,
+        value_name = "PORT",
+        help = "Listen on 127.0.0.1:PORT for the co-op memory bridge (0 picks a free port)"
+    )]
+    pub coop_port: Option<u16>,
     #[arg(long, value_name = "NETPLAY_SERVER_ADDR", hide = true)]
     pub netplay_server_addr: Option<String>,
     #[arg(long, value_name = "NETPLAY_PLAYER_NUMBER", hide = true)]
@@ -271,6 +278,7 @@ pub fn run(args: Args, arg_count: usize) -> std::io::Result<()> {
             },
             ra_config,
             netplay_config,
+            args.coop_port,
         );
 
         // on Android, the client is shut down in the app_window function

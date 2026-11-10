@@ -58,6 +58,11 @@ pub fn process(device: &mut device::Device, channel: usize) {
             let offset = device.pif.channels[channel].rx_buf.unwrap();
             let input = if let Some(netplay) = &mut device.netplay {
                 netplay.inputs[channel].0
+            } else if let Some(data) = device.coop.as_ref().and_then(|coop| coop.inputs[channel]) {
+                ui::input::InputData {
+                    data,
+                    pak_change_pressed: false,
+                }
             } else {
                 ui::input::get(&mut device.ui, channel)
             };

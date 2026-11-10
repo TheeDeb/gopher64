@@ -1,4 +1,4 @@
-use crate::{cheats, device, netplay, retroachievements, savestates, ui};
+use crate::{cheats, coop, device, netplay, retroachievements, savestates, ui};
 
 const VI_STATUS_REG: usize = 0;
 const VI_ORIGIN_REG: usize = 1;
@@ -162,6 +162,8 @@ pub fn update_screen(device: &mut device::Device) {
 }
 
 pub fn vertical_interrupt_event(device: &mut device::Device) {
+    coop::on_frame(device);
+
     device.vi.elapsed_time += device.vi.frame_time;
 
     if device.cheats.enabled {
